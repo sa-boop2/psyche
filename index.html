@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PSYCHE — Interactive Map of the Psyche</title>
+  <meta name="description"
+    content="An interactive 3D visual map of the human psyche synthesizing 16 psychological, philosophical, and spiritual frameworks across cultures and traditions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+    rel="stylesheet">
+  <script src="js/three.min.js"></script>
+  <link rel="stylesheet" href="css/main.css">
+  
+  <!-- Apple/PWA Specifics -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Psyche Map">
+  <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+  <!-- Top Navigation — Views + Utility buttons -->
+  <nav id="main-nav">
+    <div class="nav-left-group">
+      <div class="nav-brand" title="Psyche — Map of Consciousness">PSYCHE</div>
+      <button id="btn-search" class="nav-icon-btn" title="Search (Ctrl+K)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </button>
+    </div>
+      <div id="view-tabs" class="view-pill-group"></div>
+      <div class="nav-right-group">
+        <select id="atmosphere-select" title="Internal Weather" style="margin-right:12px; background:transparent; border:1px solid var(--border); color:var(--text); padding:4px 8px; border-radius:4px; font-family:var(--font-ui); font-size:0.75rem; cursor:pointer;">
+          <option value="neutral">Neutral Sky (Default)</option>
+          <option value="anxiety">Anxiety / Dissonance</option>
+          <option value="flow">Flow State (Breathing)</option>
+          <option value="depression">Depression / Fog</option>
+          <option value="mystical">Mystical Unitive</option>
+        </select>
+        <button id="btn-theme" class="nav-icon-btn" title="Toggle Light/Dark (T)">
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" style="display:none">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        </button>
+        <button id="btn-keyboard" class="nav-icon-btn" title="Keyboard shortcuts (?)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h8" />
+          </svg>
+        </button>
+      </div>
+    </nav>
+  
+    <!-- Sub Navigation — Tradition & Framework Selection -->
+    <div id="sub-nav">
+      <div id="tradition-filter">
+        <button class="trad-btn active" data-tradition="all">All Traditions</button>
+        <button class="trad-btn" data-tradition="western">Western</button>
+        <button class="trad-btn" data-tradition="eastern">Eastern</button>
+        <button class="trad-btn" data-tradition="indigenous">Indigenous</button>
+        <button class="trad-btn" data-tradition="esoteric">Esoteric</button>
+        <button class="trad-btn" data-tradition="modern">Modern</button>
+      </div>
+      <div class="sub-nav-divider"></div>
+      <div id="framework-tabs" class="fw-scroll"></div>
+      <div class="sub-nav-divider"></div>
+      <div id="map-mode-toggle" class="map-mode-group">
+        <button class="mode-btn active" data-mode="3d" title="3D Sphere">3D</button>
+        <button class="mode-btn" data-mode="2d" title="2D Radial">2D</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Command Palette / Search -->
+  <div id="cmd-palette">
+    <div class="cmd-box">
+      <div class="cmd-input-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input class="cmd-input" type="text" placeholder="Search frameworks, layers, archetypes, figures..."
+          autocomplete="off" spellcheck="false">
+        <kbd class="cmd-kbd">ESC</kbd>
+      </div>
+      <div class="cmd-results"></div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Overlay -->
+  <div id="keyboard-hints" class="hidden">
+    <div class="kb-box">
+      <h3>Keyboard Shortcuts</h3>
+      <div class="kb-grid">
+        <div class="kb-row"><kbd>←</kbd><kbd>→</kbd><span>Cycle frameworks</span></div>
+        <div class="kb-row"><kbd>↑</kbd><kbd>↓</kbd><span>Cycle views</span></div>
+        <div class="kb-row"><kbd>1</kbd>-<kbd>9</kbd><span>Select layer</span></div>
+        <div class="kb-row"><kbd>Ctrl</kbd>+<kbd>K</kbd><span>Search</span></div>
+        <div class="kb-row"><kbd>T</kbd><span>Toggle theme</span></div>
+        <div class="kb-row"><kbd>S</kbd><span>Toggle sound</span></div>
+        <div class="kb-row"><kbd>L</kbd><span>Toggle labels</span></div>
+        <div class="kb-row"><kbd>Esc</kbd><span>Close panel</span></div>
+        <div class="kb-row"><kbd>?</kbd><span>This help</span></div>
+      </div>
+      <button class="kb-close" onclick="document.getElementById('keyboard-hints').classList.add('hidden')">Got
+        it</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main id="app-main">
+    <!-- Map View (3D + 2D) -->
+    <div id="map-view" class="view active">
+      <canvas id="three-canvas"></canvas>
+      <canvas id="canvas-2d" style="display:none;position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      <div id="map-legend"></div>
+      <div id="map-controls">
+        <button class="map-ctrl-btn" id="btn-toggle-sound" title="Toggle Sound (S)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          </svg>
+        </button>
+        <button class="map-ctrl-btn" id="btn-export" title="Export as PNG">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+        </button>
+        <button class="map-ctrl-btn" id="btn-reset-camera" title="Reset Camera">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 4v6h6" />
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          </svg>
+        </button>
+        <button class="map-ctrl-btn active" id="btn-toggle-autorotate" title="Auto Rotate">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            <polyline points="21 3 21 9 15 9" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Consciousness Evolution Timeline -->
+      <div id="timeline-container">
+        <div id="timeline-epoch-map"></div>
+        <span class="timeline-bound" id="timeline-min">65,000 BCE</span>
+        <input type="range" id="timeline-slider" min="0" max="10" value="10" step="1" title="Informative timeline of psychological epochs" disabled>
+        <div id="timeline-era-indicator">PRESENT DAY</div>
+        <span class="timeline-bound" id="timeline-current">2026 CE</span>
+      </div>
+
+      <div id="hovered-label" class="hidden"></div>
+    </div>
+
+    <!-- Secondary Views Container -->
+    <div id="secondary-view" class="view"></div>
+
+    <!-- Shadow Scanner View -->
+    <div id="scanner-view" class="view">
+      <div class="scanner-container">
+        <h2 style="font-family:var(--font-display); color:var(--gold); margin-bottom:10px; font-weight:400; font-size:2rem; letter-spacing:0.02em;">The Shadow Scanner</h2>
+        <p style="color:var(--text-dim); max-width:600px; margin:0 auto 40px auto; font-size:0.95rem; line-height:1.6;">An interactive self-inquiry engine mapping your current psychological friction directly onto the 3D psyche map.</p>
+        <div id="scanner-content"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Floating Sidebar -->
+  <aside id="sidebar" class="hidden">
+    <div class="sidebar-header">
+      <div class="sidebar-header-text">
+        <h2 id="sidebar-title"></h2>
+        <span id="sidebar-subtitle"></span>
+      </div>
+      <button id="sidebar-close" title="Close sidebar">✕</button>
+    </div>
+    <div id="sidebar-content" class="sidebar-body"></div>
+  </aside>
+
+  <!-- Tooltip -->
+  <div id="tooltip" class="hidden"></div>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <div class="loading-symbol">Ψ</div>
+      <div class="loading-text">Mapping the psyche...</div>
+      <div class="loading-bar">
+        <div class="loading-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data -->
+  <script src="data/frameworks-western.js"></script>
+  <script src="data/frameworks-eastern.js"></script>
+  <script src="data/frameworks-indigenous.js"></script>
+  <script src="data/frameworks-esoteric.js"></script>
+  <script src="data/frameworks-modern.js"></script>
+  <script src="data/frameworks-spiritual.js"></script>
+  <script src="data/supplementary.js"></script>
+  <script src="data/cases.js"></script>
+  <script src="data/lineage.js"></script>
+  <script src="data/ego.js"></script>
+
+  <!-- Application -->
+  <script src="js/sidebar.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/sphere3d.js"></script>
+  <script src="js/view2d.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/lineage.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/views-explore.js"></script>
+  <script src="js/views-develop.js"></script>
+  <script src="js/views-map.js"></script>
+  <script src="js/views-ego.js"></script>
+  <script src="js/views-scanner.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
